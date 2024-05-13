@@ -1,5 +1,14 @@
 import React, { useState } from "react";
-import { Form, Input, Button, Card, Layout, Typography } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Card,
+  Layout,
+  Typography,
+  Alert,
+  Space,
+} from "antd";
 import styles from "./styles";
 import { UserOutlined, SafetyOutlined, MailOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
@@ -10,11 +19,11 @@ import { ISLOGIN } from "../../constants/actionType";
 const { Title } = Typography;
 
 const Authform = () => {
-  //const user = null;
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isLogin = useSelector((state) => state.storyformReduecer.islogin);
+  const { error } = useSelector((state) => state.authenticationReducer);
 
   const onSubmit = (formValues) => {
     if (isLogin) {
@@ -30,6 +39,18 @@ const Authform = () => {
 
   return (
     <Layout style={styles.container}>
+      {error && (
+        <Space
+          direction="vertical"
+          style={{
+            width: "400px",
+            marginBottom:"0.5rem"
+          }}
+        >
+          <Alert message="Invalid login or password" type="error" showIcon closable/>
+        </Space>
+      )}
+
       <Card
         style={styles.card}
         title={
@@ -73,6 +94,7 @@ const Authform = () => {
               type="email"
               prefix={<MailOutlined />}
               placeholder="Email Address"
+              allowClear
             />
           </Form.Item>
           <Form.Item
@@ -88,6 +110,7 @@ const Authform = () => {
               type="passowrd"
               prefix={<SafetyOutlined />}
               placeholder="password"
+              allowClear
             />
           </Form.Item>
 

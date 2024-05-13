@@ -5,6 +5,7 @@ import {
   UPDATE_STORY,
   DELETE_STORY,
   LIKE_STORY,
+  //COMMENT_STORY,
 } from "../constants/actionType";
 
 export const getStories = () => async (dsipatch) => {
@@ -30,7 +31,7 @@ export const createStory = (story) => async (dsipatch) => {
 export const updateStory = (id, story) => async (dsipatch) => {
   try {
     const { data } = await api.updateStory(id, story);
-    //console.log(data) // return updated post
+
     const action = { type: UPDATE_STORY, payload: data };
     dsipatch(action);
   } catch (error) {
@@ -41,7 +42,7 @@ export const updateStory = (id, story) => async (dsipatch) => {
 export const deleteStory = (id) => async (dsipatch) => {
   try {
     await api.deleteStory(id);
-    //console.log(data) // return updated post
+
     const action = { type: DELETE_STORY, payload: id };
     dsipatch(action);
   } catch (error) {
@@ -49,7 +50,7 @@ export const deleteStory = (id) => async (dsipatch) => {
   }
 };
 
-export const likeStroy = (id) => async (dispatch) => {
+export const likeStory = (id) => async (dispatch) => {
   try {
     const { data } = await api.likeStroy(id);
     const action = { type: LIKE_STORY, payload: data };
@@ -58,3 +59,6 @@ export const likeStroy = (id) => async (dispatch) => {
     console.log(error.message);
   }
 };
+
+
+

@@ -10,7 +10,7 @@ const { Sider, Content } = Layout;
 
 const Home = () => {
   const dispatch = useDispatch();
-  const [selectedId, setSelectedId] = useState(null);
+  const [editId, setEditId] = useState(null);
 
   useEffect(() => {
     dispatch(getStories());
@@ -18,11 +18,11 @@ const Home = () => {
 
   return (
     <Layout>
-      <Sider style={styles.sider} width={400} >
-        <StoryForm selectedId={selectedId} setSelectedId={setSelectedId}/>
+      <Sider style={styles.sider} width={400}>
+        <StoryForm editId={editId} setEditId={setEditId} />
       </Sider>
       <Content style={styles.content}>
-        <StoryList setSelectedId={setSelectedId}/>
+        <StoryList setEditId={setEditId} />
       </Content>
     </Layout>
   );

@@ -4,6 +4,7 @@ import{
   UPDATE_STORY,
   DELETE_STORY,
   LIKE_STORY,
+  //COMMENT_STORY,
 } from "../constants/actionType"
 
 const storyReducer = (state = [], action) => {
@@ -22,6 +23,8 @@ const storyReducer = (state = [], action) => {
       })
     case LIKE_STORY:
       return state.map((story) => story._id === action.payload._id? action.payload : story )
+    //case COMMENT_STORY:
+    //  return state.map((story) => story._id === action.payload._id? action.payload : story )
     default:
       return state;
   }

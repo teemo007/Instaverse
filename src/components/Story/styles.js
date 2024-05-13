@@ -16,9 +16,6 @@ const styles = {
     overflow: "hidden",
   },
   heartFilled: { color: "magenta" },
-
-
-
 };
 
 export default styles;

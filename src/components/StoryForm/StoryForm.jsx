@@ -8,10 +8,10 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ISLOGIN } from "../../constants/actionType";
 
-const StoryForm = ({ selectedId, setSelectedId }) => {
+const StoryForm = ({ editId, setEditId }) => {
   const dispatch = useDispatch();
   const story = useSelector((state) =>
-    selectedId ? state.stories.find((story) => story?._id === selectedId) : null
+    editId ? state.stories.find((story) => story?._id === editId) : null
   );
 
   const user = useSelector((state) => state.authenticationReducer.authData);
@@ -21,8 +21,8 @@ const StoryForm = ({ selectedId, setSelectedId }) => {
   const username = user?.result.username;
 
   const onSubmit = (formValues) => {
-    selectedId
-      ? dispatch(updateStory(selectedId, { ...formValues, username: username }))
+    editId
+      ? dispatch(updateStory(editId, { ...formValues, username: username }))
       : dispatch(createStory({ ...formValues, username: username }));
     reset();
   };
@@ -35,7 +35,8 @@ const StoryForm = ({ selectedId, setSelectedId }) => {
 
   const reset = () => {
     form.resetFields();
-    setSelectedId(null);
+
+    setEditId(null);
   };
 
   if (!user) {
@@ -69,7 +70,7 @@ const StoryForm = ({ selectedId, setSelectedId }) => {
       style={styles.formCard}
       title={
         <Title level={4} style={styles.formTitle}>
-          {selectedId ? "Editing" : "Share"} a story
+          {editId ? "Editing" : "Share"} a story
         </Title>
       }
     >
@@ -103,7 +104,7 @@ const StoryForm = ({ selectedId, setSelectedId }) => {
             Share
           </Button>
         </Form.Item>
-        {!selectedId ? null : (
+        {!editId ? null : (
           <Form.Item wrapperCol={{ span: 16, offset: 6 }}>
             <Button
               type="primary"

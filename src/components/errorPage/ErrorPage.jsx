@@ -1,27 +1,21 @@
-import { useRouteError, Link } from "react-router-dom";
-import styles from "./styles";
-import { Button, Typography, Flex} from "antd";
+import { useRouteError } from "react-router-dom";
 
-const { Title } = Typography;
+import { Button, Typography, Result } from "antd";
 
 const ErrorPage = () => {
   const error = useRouteError();
 
   return (
-    <div style={styles.errorWrapper}>
-      <Flex gap="middle" align="center" vertical>
-        <Title level={1}>Oops!</Title>
-        <Title level={3}>Sorry, an unexpected error has occurred.</Title>
-        <Title level={4}>
-          <i>{error.statusText || error.message}</i>
-        </Title>
-        <Title level={5}>
-          <Button type="link" size="large">
-            <Link>Home</Link>
-          </Button>
-        </Title>
-      </Flex>
-    </div>
+    <Result
+      status="404"
+      title={<i>{error.statusText || error.message}</i>}
+      subTitle="Sorry, the page you visited does not exist."
+      extra={
+        <Button type="link" href="/">
+          Back Home
+        </Button>
+      }
+    />
   );
 };
 

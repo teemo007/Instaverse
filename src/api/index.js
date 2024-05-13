@@ -17,5 +17,10 @@ export const updateStory = async (id,story) => await api.patch(`${"/stories"}/${
 export const deleteStory = async (id) => await api.delete(`${"/stories"}/${id}`)
 export const likeStroy = async (id) => await api.patch(`${"/stories"}/${id}/likeStroy`)
 
+export const addComment = async (story_id,comment) => await api.post(`${"/comments"}/${story_id}/add`,comment)
+export const addreplytoComment = async (story_id,commentParentId,replyData) => await api.post(`${"/comments"}/${story_id}/reply/${commentParentId}`,replyData)
+export const commentsforStory = async (story_id) => await api.get(`${"/comments"}/${story_id}/`)
+export const repliesforComment = async (comment_id) => await api.get(`${"/comments"}/replies/${comment_id}/`)
+
 export const signin = async (formValues) => await api.post("/user/signin", formValues)
 export const signup = async (formValues) => await api.post("/user/signup", formValues)
