@@ -7,7 +7,8 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-#Instaverse
+# Instaverse
+
 Instaverse is your passport to sharing life's unforgettable moments and thrilling adventures. Whether you're exploring a new city, embarking on a daring journey, or simply savoring the beauty of everyday life, Instaverse lets you capture and share your experiences with the world.
 
 With Instaverse, you can effortlessly document your travels, triumphs, and tales through a user-friendly interface designed for seamless storytelling. Share snapshots of your journey, accompanied by captivating captions that breathe life into every moment.
