@@ -4,3 +4,7 @@ export interface AuthFormFields {
   password: string;
   confirmPassword?: string;
 }
+
+export interface AuthRouteState {
+  mode?: "signIn" | "signUp";
+}

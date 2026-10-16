@@ -4,7 +4,7 @@ import appbarStyles from "../components/AppBar/styles";
 import AppBar from "../components/AppBar/AppBar";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import AuthForm from "../features/auth/components/AuthForm";
-import Home from "../components/Home/Home";
+import Home from "../features/stories/components/Home";
 import ErrorPage from "../components/errorPage/ErrorPage";
 
 const { Footer } = Layout;

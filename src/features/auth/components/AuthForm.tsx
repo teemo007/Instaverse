@@ -5,18 +5,20 @@ import {
 } from "@ant-design/icons";
 import { Alert, Button, Card, Form, Input, Layout, Typography } from "antd";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { signIn, signUp } from "../authSlice";
 import type { SignInValues, SignUpValues } from "../auth.types";
 import styles from "./AuthForm.styles";
-import type { AuthFormFields } from "./AuthForm.types";
+import type { AuthFormFields, AuthRouteState } from "./AuthForm.types";
 
 const { Title } = Typography;
 
 const AuthForm = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const location = useLocation();
+  const routeState = location.state as AuthRouteState | null;
+  const [isLogin, setIsLogin] = useState(routeState?.mode !== "signUp");
   const [form] = Form.useForm<AuthFormFields>();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
