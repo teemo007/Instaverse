@@ -11,6 +11,22 @@ module.exports = {
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
   settings: { react: { version: '18.2' } },
   plugins: ['react-refresh'],
+  overrides: [
+    {
+      files: ['**/*.ts', '**/*.tsx'],
+      parser: '@typescript-eslint/parser',
+      plugins: ['@typescript-eslint', 'react-refresh'],
+      extends: ['plugin:@typescript-eslint/recommended'],
+      rules: {
+        'react/prop-types': 'off',
+        'no-unused-vars': 'off',
+        '@typescript-eslint/no-unused-vars': [
+          'error',
+          { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+        ],
+      },
+    },
+  ],
   rules: {
     'react/jsx-no-target-blank': 'off',
     'react-refresh/only-export-components': [
