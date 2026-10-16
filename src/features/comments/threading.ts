@@ -18,7 +18,7 @@ export const buildReplyThread = (
         return [
           {
             ...comment,
-            parentUsername: immediateParent?.user_id.username ?? "Unknown",
+            parentUsername: immediateParent?.user_id?.username ?? "Unknown",
           },
         ];
       }

@@ -6,7 +6,7 @@ export interface CommentAuthor {
 export interface Comment {
   _id: string;
   story_id: string;
-  user_id: CommentAuthor;
+  user_id: CommentAuthor | null;
   content: string;
   createdAt: string;
   parentId: string | null;

@@ -11,8 +11,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import Comment from "../../../components/comment/Comment";
 import { fetchComments } from "../../comments/commentsSlice";
+import Comment from "../../comments/components/Comment";
 import { deleteStory, likeStory } from "../storiesSlice";
 import styles from "./Story.styles";
 import type { StoryProps } from "./Story.types";
