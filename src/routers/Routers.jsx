@@ -3,7 +3,7 @@ import styles from "../styles";
 import appbarStyles from "../components/AppBar/styles";
 import AppBar from "../components/AppBar/AppBar";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
-import AuthForm from "../components/authForm/Authform";
+import AuthForm from "../features/auth/components/AuthForm";
 import Home from "../components/Home/Home";
 import ErrorPage from "../components/errorPage/ErrorPage";
 
