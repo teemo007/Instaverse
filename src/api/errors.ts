@@ -7,7 +7,18 @@ const DEFAULT_ERROR_MESSAGE = "Something went wrong";
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+const isAppError = (value: unknown): value is AppError =>
+  !(value instanceof Error) &&
+  isRecord(value) &&
+  typeof value.message === "string" &&
+  value.message.trim().length > 0 &&
+  (value.status === undefined || typeof value.status === "number");
+
 const getResponseMessage = (data: unknown): string | null => {
+  if (typeof data === "string" && data.trim()) {
+    return data;
+  }
+
   if (!isRecord(data)) {
     return null;
   }
@@ -31,6 +42,10 @@ export const normalizeApiError = (error: unknown): AppError => {
     const status = error.response?.status;
 
     return typeof status === "number" ? { message, status } : { message };
+  }
+
+  if (isAppError(error)) {
+    return error;
   }
 
   if (error instanceof Error && error.message.trim()) {
