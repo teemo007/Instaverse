@@ -6,6 +6,7 @@ import {
 } from "axios";
 import { describe, expect, it } from "vitest";
 
+import { apiClient } from "./client";
 import { normalizeApiError } from "./errors";
 
 const createAxiosError = (
@@ -44,6 +45,13 @@ describe("normalizeApiError", () => {
     });
   });
 
+  it("keeps a plain-text backend error message", () => {
+    expect(normalizeApiError(createAxiosError("Story not found", 404))).toEqual({
+      message: "Story not found",
+      status: 404,
+    });
+  });
+
   it("keeps an ordinary Error message without serializing the Error", () => {
     expect(normalizeApiError(new Error("Network unavailable"))).toEqual({
       message: "Network unavailable",
@@ -62,6 +70,27 @@ describe("normalizeApiError", () => {
     });
     expect(normalizeApiError(null)).toEqual({
       message: "Something went wrong",
+    });
+  });
+
+  it("keeps an already normalized application error", () => {
+    expect(
+      normalizeApiError({ message: "Request failed", status: 503 }),
+    ).toEqual({ message: "Request failed", status: 503 });
+  });
+});
+
+describe("apiClient response errors", () => {
+  it("rejects with the normalized backend message and status", async () => {
+    const request = apiClient.get("/test", {
+      adapter: async () => {
+        throw createAxiosError({ message: "Service unavailable" }, 503);
+      },
+    });
+
+    await expect(request).rejects.toEqual({
+      message: "Service unavailable",
+      status: 503,
     });
   });
 });

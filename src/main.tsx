@@ -5,6 +5,7 @@ import { Provider } from "react-redux";
 
 import App from "./app/App";
 import { store } from "./app/store";
+import { ErrorBoundary } from "./components/layout/ErrorBoundary";
 import "./index.css";
 
 if (import.meta.env.VITE_NODE_ENV === "PRODUCTION") {
@@ -19,8 +20,10 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <Provider store={store}>
-      <App />
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );
