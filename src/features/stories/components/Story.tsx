@@ -14,6 +14,7 @@ import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { fetchComments } from "../../comments/commentsSlice";
 import Comment from "../../comments/components/Comment";
 import { deleteStory, likeStory } from "../storiesSlice";
+import { getStoryImageUrl } from "../images";
 import styles from "./Story.styles";
 import type { StoryProps } from "./Story.types";
 
@@ -23,6 +24,7 @@ const { Link, Paragraph, Text } = Typography;
 const Story = ({
   caption,
   image,
+  imageFileId,
   likes,
   username,
   userId,
@@ -130,7 +132,7 @@ const Story = ({
     <div style={styles.cardContainer}>
       <Card
         style={styles.card}
-        cover={<Image src={image} />}
+        cover={<Image src={getStoryImageUrl(image, imageFileId)} preview={{ src: image }} loading="lazy" alt={caption} />}
         actions={visibleActions}
       >
         <Meta title={username} />
