@@ -1,9 +1,17 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 
 import type { AppError, AsyncStatus } from "../../api/api.types";
 import { normalizeApiError } from "../../api/errors";
-import { signInRequest, signUpRequest } from "./authApi";
-import { loadStoredAuth, saveStoredAuth } from "./authPersistence";
+import {
+  restoreSessionRequest,
+  signInRequest,
+  signOutRequest,
+  signUpRequest,
+} from "./authApi";
 import type {
   AuthSession,
   AuthUser,
@@ -13,33 +21,53 @@ import type {
 
 export interface AuthState {
   user: AuthUser | null;
-  token: string | null;
+  csrfToken: string | null;
   status: AsyncStatus;
+  initialized: boolean;
   error: AppError | null;
 }
 
-export const createInitialAuthState = (
-  storage?: Pick<Storage, "getItem">,
-): AuthState => {
-  const session = loadStoredAuth(storage);
+export const createInitialAuthState = (): AuthState => ({
+  user: null,
+  csrfToken: null,
+  status: "idle",
+  initialized: false,
+  error: null,
+});
 
-  return {
-    user: session?.result ?? null,
-    token: session?.token ?? null,
-    status: "idle",
-    error: null,
-  };
+type AuthThunkConfig = {
+  rejectValue: AppError;
+  state: { auth: AuthState };
 };
+
+export const restoreSession = createAsyncThunk<
+  AuthSession,
+  void,
+  AuthThunkConfig
+>(
+  "auth/restoreSession",
+  async (_unused, { rejectWithValue }) => {
+    try {
+      return await restoreSessionRequest();
+    } catch (error) {
+      return rejectWithValue(normalizeApiError(error));
+    }
+  },
+  {
+    condition: (_unused, { getState }) => {
+      const { initialized, status } = getState().auth;
+      return !initialized && status !== "loading";
+    },
+  },
+);
 
 export const signIn = createAsyncThunk<
   AuthSession,
   SignInValues,
-  { rejectValue: AppError }
+  AuthThunkConfig
 >("auth/signIn", async (values, { rejectWithValue }) => {
   try {
-    const session = await signInRequest(values);
-    saveStoredAuth(session);
-    return session;
+    return await signInRequest(values);
   } catch (error) {
     return rejectWithValue(normalizeApiError(error));
   }
@@ -48,40 +76,75 @@ export const signIn = createAsyncThunk<
 export const signUp = createAsyncThunk<
   AuthSession,
   SignUpValues,
-  { rejectValue: AppError }
+  AuthThunkConfig
 >("auth/signUp", async (values, { rejectWithValue }) => {
   try {
-    const session = await signUpRequest(values);
-    saveStoredAuth(session);
-    return session;
+    return await signUpRequest(values);
   } catch (error) {
     return rejectWithValue(normalizeApiError(error));
   }
 });
 
+export const signOut = createAsyncThunk<void, void, AuthThunkConfig>(
+  "auth/signOut",
+  async (_unused, { rejectWithValue }) => {
+    try {
+      await signOutRequest();
+    } catch (error) {
+      return rejectWithValue(normalizeApiError(error));
+    }
+  },
+);
+
+const applySession = (
+  state: AuthState,
+  action: PayloadAction<AuthSession>,
+): void => {
+  const session = action.payload;
+  state.user = session.user;
+  state.csrfToken = session.csrfToken;
+  state.status = "succeeded";
+  state.initialized = true;
+  state.error = null;
+};
+
+const clearSession = (state: AuthState): void => {
+  state.user = null;
+  state.csrfToken = null;
+  state.status = "idle";
+  state.initialized = true;
+  state.error = null;
+};
+
 const authSlice = createSlice({
   name: "auth",
   initialState: createInitialAuthState(),
   reducers: {
-    signOut: (state) => {
-      state.user = null;
-      state.token = null;
-      state.status = "idle";
-      state.error = null;
-    },
+    sessionExpired: clearSession,
   },
   extraReducers: (builder) => {
     builder
+      .addCase(restoreSession.pending, (state) => {
+        state.status = "loading";
+        state.initialized = false;
+        state.error = null;
+      })
+      .addCase(restoreSession.fulfilled, applySession)
+      .addCase(restoreSession.rejected, (state, action) => {
+        const error = action.payload ?? normalizeApiError(action.error);
+        if (error.status === 401) {
+          clearSession(state);
+          return;
+        }
+        state.status = "failed";
+        state.initialized = false;
+        state.error = error;
+      })
       .addCase(signIn.pending, (state) => {
         state.status = "loading";
         state.error = null;
       })
-      .addCase(signIn.fulfilled, (state, action) => {
-        state.user = action.payload.result;
-        state.token = action.payload.token;
-        state.status = "succeeded";
-        state.error = null;
-      })
+      .addCase(signIn.fulfilled, applySession)
       .addCase(signIn.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? normalizeApiError(action.error);
@@ -90,18 +153,22 @@ const authSlice = createSlice({
         state.status = "loading";
         state.error = null;
       })
-      .addCase(signUp.fulfilled, (state, action) => {
-        state.user = action.payload.result;
-        state.token = action.payload.token;
-        state.status = "succeeded";
+      .addCase(signUp.fulfilled, applySession)
+      .addCase(signUp.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? normalizeApiError(action.error);
+      })
+      .addCase(signOut.pending, (state) => {
+        state.status = "loading";
         state.error = null;
       })
-      .addCase(signUp.rejected, (state, action) => {
+      .addCase(signOut.fulfilled, clearSession)
+      .addCase(signOut.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? normalizeApiError(action.error);
       });
   },
 });
 
-export const { signOut } = authSlice.actions;
+export const { sessionExpired } = authSlice.actions;
 export const authReducer = authSlice.reducer;

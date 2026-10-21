@@ -6,8 +6,8 @@ export interface AuthUser {
 }
 
 export interface AuthSession {
-  result: AuthUser;
-  token: string;
+  user: AuthUser;
+  csrfToken: string;
 }
 
 export interface SignInValues {
