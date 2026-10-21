@@ -6,6 +6,8 @@ import {
   restoreSession,
   sessionExpired,
   signIn,
+  signInWithGoogle,
+  linkGoogle,
   signOut,
   signUp,
 } from "./authSlice";
@@ -134,6 +136,42 @@ describe("authSlice", () => {
       expect(nextState.initialized).toBe(true);
       expect(nextState.status).toBe("succeeded");
     }
+  });
+
+  it("stores Google sign-in and linking session responses", () => {
+    const actions = [
+      signInWithGoogle.fulfilled(session, "google-1", "credential"),
+      linkGoogle.fulfilled(session, "google-2", {
+        credential: "credential",
+        password: "existing-password",
+      }),
+    ];
+
+    for (const action of actions) {
+      const nextState = authReducer(undefined, action);
+      expect(nextState.user).toEqual(session.user);
+      expect(nextState.csrfToken).toBe(session.csrfToken);
+      expect(nextState.error).toBeNull();
+    }
+  });
+
+  it("preserves the account-link-required code for the UI", () => {
+    const error = {
+      message: "Sign in with your existing password to link Google.",
+      status: 409,
+      code: "ACCOUNT_LINK_REQUIRED",
+    };
+    const nextState = authReducer(
+      undefined,
+      signInWithGoogle.rejected(
+        new Error("Rejected"),
+        "google-1",
+        "credential",
+        error,
+      ),
+    );
+
+    expect(nextState.error).toEqual(error);
   });
 
   it("does not clear authentication until server sign-out succeeds", () => {

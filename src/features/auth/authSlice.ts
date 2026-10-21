@@ -8,13 +8,16 @@ import type { AppError, AsyncStatus } from "../../api/api.types";
 import { normalizeApiError } from "../../api/errors";
 import {
   restoreSessionRequest,
+  linkGoogleRequest,
   signInRequest,
+  signInWithGoogleRequest,
   signOutRequest,
   signUpRequest,
 } from "./authApi";
 import type {
   AuthSession,
   AuthUser,
+  GoogleLinkValues,
   SignInValues,
   SignUpValues,
 } from "./auth.types";
@@ -96,6 +99,30 @@ export const signOut = createAsyncThunk<void, void, AuthThunkConfig>(
   },
 );
 
+export const signInWithGoogle = createAsyncThunk<
+  AuthSession,
+  string,
+  AuthThunkConfig
+>("auth/signInWithGoogle", async (credential, { rejectWithValue }) => {
+  try {
+    return await signInWithGoogleRequest(credential);
+  } catch (error) {
+    return rejectWithValue(normalizeApiError(error));
+  }
+});
+
+export const linkGoogle = createAsyncThunk<
+  AuthSession,
+  GoogleLinkValues,
+  AuthThunkConfig
+>("auth/linkGoogle", async (values, { rejectWithValue }) => {
+  try {
+    return await linkGoogleRequest(values);
+  } catch (error) {
+    return rejectWithValue(normalizeApiError(error));
+  }
+});
+
 const applySession = (
   state: AuthState,
   action: PayloadAction<AuthSession>,
@@ -120,6 +147,9 @@ const authSlice = createSlice({
   name: "auth",
   initialState: createInitialAuthState(),
   reducers: {
+    clearAuthError: (state) => {
+      state.error = null;
+    },
     sessionExpired: clearSession,
   },
   extraReducers: (builder) => {
@@ -166,9 +196,27 @@ const authSlice = createSlice({
       .addCase(signOut.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload ?? normalizeApiError(action.error);
+      })
+      .addCase(signInWithGoogle.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(signInWithGoogle.fulfilled, applySession)
+      .addCase(signInWithGoogle.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? normalizeApiError(action.error);
+      })
+      .addCase(linkGoogle.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(linkGoogle.fulfilled, applySession)
+      .addCase(linkGoogle.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload ?? normalizeApiError(action.error);
       });
   },
 });
 
-export const { sessionExpired } = authSlice.actions;
+export const { clearAuthError, sessionExpired } = authSlice.actions;
 export const authReducer = authSlice.reducer;

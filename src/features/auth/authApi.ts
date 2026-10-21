@@ -2,6 +2,7 @@ import { apiClient } from "../../api/client";
 
 import type {
   AuthSession,
+  GoogleLinkValues,
   SignInValues,
   SignUpValues,
 } from "./auth.types";
@@ -27,4 +28,20 @@ export const signUpRequest = async (
 
 export const signOutRequest = async (): Promise<void> => {
   await apiClient.post("/user/signout", {});
+};
+
+export const signInWithGoogleRequest = async (
+  credential: string,
+): Promise<AuthSession> => {
+  const { data } = await apiClient.post<AuthSession>("/user/google", {
+    credential,
+  });
+  return data;
+};
+
+export const linkGoogleRequest = async (
+  values: GoogleLinkValues,
+): Promise<AuthSession> => {
+  const { data } = await apiClient.post<AuthSession>("/user/google/link", values);
+  return data;
 };

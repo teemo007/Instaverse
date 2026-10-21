@@ -19,3 +19,8 @@ export interface SignUpValues extends SignInValues {
   username: string;
   confirmPassword: string;
 }
+
+export interface GoogleLinkValues {
+  credential: string;
+  password: string;
+}

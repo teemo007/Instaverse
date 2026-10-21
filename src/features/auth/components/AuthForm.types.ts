@@ -8,3 +8,7 @@ export interface AuthFormFields {
 export interface AuthRouteState {
   mode?: "signIn" | "signUp";
 }
+
+export interface GoogleLinkFields {
+  password: string;
+}
