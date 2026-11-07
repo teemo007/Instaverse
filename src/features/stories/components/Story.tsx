@@ -1,168 +1,275 @@
 import {
-  DeleteTwoTone,
+  DeleteOutlined,
   EditOutlined,
+  EllipsisOutlined,
   HeartFilled,
-  HeartTwoTone,
+  HeartOutlined,
   MessageOutlined,
 } from "@ant-design/icons";
-import { Card, Image, Popconfirm, Tooltip, Typography, message } from "antd";
+import { Dropdown, Modal, message } from "antd";
 import moment from "moment";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import UserAvatar from "../../../components/ui/UserAvatar";
 import { fetchComments } from "../../comments/commentsSlice";
-import Comment from "../../comments/components/Comment";
-import { deleteStory, likeStory } from "../storiesSlice";
+import CommentsModal from "../../comments/components/Comment";
+import { useComposer } from "../composer/composerContext";
+import { parseTags, shortTime } from "../format";
 import { getStoryImageUrl } from "../images";
-import styles from "./Story.styles";
-import type { StoryProps } from "./Story.types";
+import { deleteStory, likeStory } from "../storiesSlice";
+import type { Story as StoryModel } from "../story.types";
+import styles from "./Story.module.css";
 
-const { Meta } = Card;
-const { Link, Paragraph, Text } = Typography;
+const LONG_CAPTION = 125;
 
-const Story = ({
-  caption,
-  image,
-  imageFileId,
-  likes,
-  username,
-  userId,
-  tags,
-  postDate,
-  _id,
-  openedComments,
-  setOpenedComments,
-  setEditId,
-}: StoryProps) => {
-  const [expand, setExpand] = useState(true);
+const clampRatio = (width?: number, height?: number): number | null =>
+  width && height ? Math.min(Math.max(width / height, 0.8), 1.91) : null;
+
+const Story = (story: StoryModel) => {
+  const {
+    caption,
+    image,
+    imageFileId,
+    imageWidth,
+    imageHeight,
+    likes,
+    username,
+    userId,
+    tags,
+    postDate,
+    _id,
+  } = story;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const { openEdit } = useComposer();
+  const [modal, modalContext] = Modal.useModal();
   const user = useAppSelector((state) => state.auth.user);
-  const comments = useAppSelector(
-    (state) => state.comments.byStoryId[_id] ?? [],
+  const commentCount = useAppSelector(
+    (state) =>
+      (state.comments.byStoryId[_id] ?? []).filter(
+        (comment) => comment.parentId === null,
+      ).length,
   );
-  const topLevelComments = comments.filter(
-    (comment) => comment.parentId === null,
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [captionExpanded, setCaptionExpanded] = useState(false);
+  const [burstKey, setBurstKey] = useState(0);
+  const [popKey, setPopKey] = useState(0);
+  const [ratio, setRatio] = useState<number | null>(
+    clampRatio(imageWidth, imageHeight),
   );
+  const liking = useRef(false);
+
   const isLiked = user ? likes.includes(user._id) : false;
+  const isOwner = user?._id === userId;
+  const tagList = parseTags(tags);
+  const isLongCaption =
+    caption.length > LONG_CAPTION || caption.split("\n").length > 2;
 
   useEffect(() => {
     if (!user) {
-      setOpenedComments({});
+      setCommentsOpen(false);
       return;
     }
-
     void dispatch(fetchComments(_id));
-  }, [dispatch, _id, setOpenedComments, user]);
+  }, [dispatch, _id, user]);
 
-  const confirmDelete = async (): Promise<void> => {
+  const toggleLike = async (): Promise<void> => {
+    if (!user) {
+      navigate("/authForm", { state: { mode: "signIn" } });
+      return;
+    }
+    if (liking.current) return;
+    liking.current = true;
+    if (!isLiked) setPopKey((key) => key + 1);
     try {
-      await dispatch(deleteStory(_id)).unwrap();
-      void message.success("Story deleted successfully.");
+      await dispatch(likeStory(_id)).unwrap();
     } catch {
-      void message.error("Unable to delete story.");
+      void message.error("Couldn't update like. Please try again.");
+    } finally {
+      liking.current = false;
     }
   };
 
-  const handleOpenComments = (): void => {
-    if (!openedComments[_id]) {
-      void dispatch(fetchComments(_id));
+  const handleDoubleClick = (): void => {
+    if (!user) {
+      navigate("/authForm", { state: { mode: "signIn" } });
+      return;
     }
-
-    setOpenedComments((current) => ({ ...current, [_id]: true }));
+    setBurstKey((key) => key + 1);
+    if (!isLiked) void toggleLike();
   };
 
-  const cardActions: ReactNode[] = [
-    <div
-      key="like"
-      style={styles.actions}
-      onClick={() => {
-        if (user) {
-          void dispatch(likeStory(_id));
-        } else {
-          navigate("/authForm");
+  const openComments = (): void => {
+    if (!user) {
+      navigate("/authForm", { state: { mode: "signIn" } });
+      return;
+    }
+    void dispatch(fetchComments(_id));
+    setCommentsOpen(true);
+  };
+
+  const confirmDelete = (): void => {
+    void modal.confirm({
+      title: "Delete post?",
+      content: "Are you sure you want to delete this post? This can't be undone.",
+      okText: "Delete",
+      okButtonProps: { danger: true },
+      cancelText: "Cancel",
+      centered: true,
+      onOk: async () => {
+        try {
+          await dispatch(deleteStory(_id)).unwrap();
+          void message.success("Post deleted.");
+        } catch {
+          void message.error("Unable to delete post.");
         }
-      }}
-    >
-      <Tooltip
-        placement="top"
-        title="Like"
-        color="magenta"
-      >
-        {isLiked ? (
-          <HeartFilled style={styles.heartFilled} />
-        ) : (
-          <HeartTwoTone twoToneColor="magenta" />
-        )}
-        &nbsp; {likes.length} &nbsp;
-      </Tooltip>
-    </div>,
-    <div key="comments" onClick={handleOpenComments}>
-      <Tooltip placement="top" title="Comments" color="blue">
-        <MessageOutlined />
-        &nbsp; {topLevelComments.length} &nbsp;
-      </Tooltip>
-    </div>,
-    <Tooltip key="edit" placement="top" title="Edit" color="blue">
-      <EditOutlined onClick={() => setEditId(_id)} />
-    </Tooltip>,
-    <Tooltip key="delete" placement="top" title="Delete" color="red">
-      <Popconfirm
-        title="Delete the task"
-        description="Are you sure to delete this story?"
-        onConfirm={confirmDelete}
-        onCancel={() => void message.error("Deletion cancelled.")}
-        okText="Yes"
-        cancelText="No"
-      >
-        <DeleteTwoTone twoToneColor="red" />
-      </Popconfirm>
-    </Tooltip>,
-  ];
-
-  const visibleActions =
-    user?._id === userId
-      ? cardActions
-      : user
-        ? cardActions.slice(0, 2)
-        : cardActions.slice(0, 1);
+      },
+    });
+  };
 
   return (
-    <div style={styles.cardContainer}>
-      <Card
-        style={styles.card}
-        cover={<Image src={getStoryImageUrl(image, imageFileId)} preview={{ src: image }} loading="lazy" alt={caption} />}
-        actions={visibleActions}
-      >
-        <Meta title={username} />
-        <Paragraph
-          style={{ margin: 0 }}
-          ellipsis={{
-            rows: 2,
-            expandable: true,
-            symbol: "Read More",
-            onExpand: () => setExpand(true),
-            onEllipsis: () => setExpand(false),
-          }}
-        >
-          {caption}
-        </Paragraph>
-        {expand && tags ? (
-          <Link href="#">{tags.split(" ").map((tag) => `#${tag} `)}</Link>
+    <article className={styles.post} aria-label={`Post by ${username}`}>
+      {modalContext}
+      <header className={styles.header}>
+        <UserAvatar username={username} size={32} ring />
+        <div className={styles.author}>
+          <span className={styles.username}>{username}</span>
+          <span className={styles.dot}>•</span>
+          <time
+            className={styles.time}
+            dateTime={postDate}
+            title={moment(postDate).format("LLL")}
+          >
+            {shortTime(postDate)}
+          </time>
+        </div>
+        {isOwner ? (
+          <Dropdown
+            trigger={["click"]}
+            placement="bottomRight"
+            menu={{
+              items: [
+                {
+                  key: "edit",
+                  label: "Edit",
+                  icon: <EditOutlined />,
+                  onClick: () => openEdit(_id),
+                },
+                {
+                  key: "delete",
+                  label: "Delete",
+                  icon: <DeleteOutlined />,
+                  danger: true,
+                  onClick: confirmDelete,
+                },
+              ],
+            }}
+          >
+            <button type="button" className={styles.more} aria-label="More options">
+              <EllipsisOutlined />
+            </button>
+          </Dropdown>
         ) : null}
-        <br />
-        <Text type="secondary">{moment(postDate).fromNow()}</Text>
-      </Card>
+      </header>
 
-      {openedComments[_id] ? (
-        <Comment
-          storyOwner={username}
-          setOpenedComments={setOpenedComments}
-          storyId={_id}
+      <div
+        className={styles.media}
+        style={ratio ? { aspectRatio: String(ratio) } : undefined}
+        onDoubleClick={handleDoubleClick}
+      >
+        <img
+          className={`${styles.image} ${ratio ? styles.imageFill : ""}`}
+          src={getStoryImageUrl(image, imageFileId)}
+          alt={caption}
+          loading="lazy"
+          draggable={false}
+          onLoad={(event) => {
+            if (ratio) return;
+            const { naturalWidth, naturalHeight } = event.currentTarget;
+            setRatio(clampRatio(naturalWidth, naturalHeight));
+          }}
+        />
+        {burstKey > 0 ? (
+          <HeartFilled key={burstKey} className={styles.burst} aria-hidden="true" />
+        ) : null}
+      </div>
+
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={`${styles.action} ${isLiked ? styles.liked : ""}`}
+          aria-label={isLiked ? "Unlike" : "Like"}
+          aria-pressed={isLiked}
+          onClick={() => void toggleLike()}
+        >
+          <span key={popKey} className={popKey ? styles.pop : undefined}>
+            {isLiked ? <HeartFilled /> : <HeartOutlined />}
+          </span>
+        </button>
+        <button
+          type="button"
+          className={styles.action}
+          aria-label="Comment"
+          onClick={openComments}
+        >
+          <MessageOutlined style={{ transform: "scaleX(-1)" }} />
+        </button>
+      </div>
+
+      <div className={styles.body}>
+        <div className={styles.likes}>
+          {likes.length.toLocaleString()} {likes.length === 1 ? "like" : "likes"}
+        </div>
+
+        <div>
+          <p
+            className={`${styles.caption} ${
+              isLongCaption && !captionExpanded ? styles.captionClamped : ""
+            }`}
+          >
+            <span className={styles.captionUser}>{username}</span>
+            {caption}
+          </p>
+          {isLongCaption && !captionExpanded ? (
+            <button
+              type="button"
+              className={styles.textButton}
+              onClick={() => setCaptionExpanded(true)}
+            >
+              more
+            </button>
+          ) : null}
+        </div>
+
+        {tagList.length ? (
+          <div className={styles.tags}>
+            {tagList.map((tag, index) => (
+              <span key={`${tag}-${index}`} className={styles.tag}>
+                #{tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
+
+        {user ? (
+          <button type="button" className={styles.textButton} onClick={openComments}>
+            {commentCount > 0
+              ? `View ${commentCount === 1 ? "1 comment" : `all ${commentCount} comments`}`
+              : "Add a comment…"}
+          </button>
+        ) : null}
+      </div>
+
+      {user ? (
+        <CommentsModal
+          open={commentsOpen}
+          onClose={() => setCommentsOpen(false)}
+          story={story}
         />
       ) : null}
-    </div>
+    </article>
   );
 };
 

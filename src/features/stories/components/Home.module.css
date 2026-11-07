@@ -1,0 +1,130 @@
+.page {
+  display: flex;
+  justify-content: center;
+  gap: 64px;
+  padding: 0 0 48px;
+}
+
+.feed {
+  width: 100%;
+  max-width: 470px;
+}
+
+.aside {
+  display: none;
+  width: 320px;
+  padding-top: 36px;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding-top: 24px;
+  }
+}
+
+@media (min-width: 1160px) {
+  .aside {
+    display: block;
+  }
+}
+
+.asideSticky {
+  position: sticky;
+  top: 36px;
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 4px;
+}
+
+.accountText {
+  min-width: 0;
+  flex: 1;
+}
+
+.accountName {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountMeta {
+  overflow: hidden;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.textAction {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.textAction:hover {
+  color: var(--link);
+}
+
+.welcome {
+  padding: 24px;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+}
+
+.welcomeTitle {
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.welcomeText {
+  margin-bottom: 16px;
+  color: var(--text-secondary);
+  line-height: 20px;
+}
+
+.welcomeActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.composePrompt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 24px;
+  padding: 14px 16px;
+  width: 100%;
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--card-shadow);
+  color: var(--text-secondary);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.composePrompt:hover {
+  border-color: var(--card-border-hover);
+}
+
+.footer {
+  margin-top: 32px;
+  padding: 0 4px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  text-transform: uppercase;
+}

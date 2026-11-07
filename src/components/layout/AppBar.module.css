@@ -1,0 +1,214 @@
+/* ---------- Sidebar (tablet & desktop) ---------- */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  width: var(--sidebar-narrow);
+  padding: 8px 12px 20px;
+  border-right: 1px solid var(--border);
+  background: var(--nav-bg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 92px;
+  padding: 0 12px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brandIcon {
+  flex-shrink: 0;
+  transition: transform 200ms ease;
+}
+
+.brand:hover .brandIcon {
+  transform: rotate(-8deg) scale(1.06);
+}
+
+:global([data-theme="dark"]) .brandIcon {
+  filter: drop-shadow(0 0 10px rgba(182, 156, 255, 0.45));
+}
+
+.wordmark {
+  display: none;
+  font-size: 22px;
+}
+
+.navList {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font-size: 16px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.navItem:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.navItem:hover .navIcon {
+  transform: scale(1.06);
+}
+
+.navItemActive {
+  font-weight: 700;
+}
+
+.navIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  width: 24px;
+  font-size: 24px;
+  transition: transform 150ms ease;
+}
+
+.navLabel {
+  display: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.authButtons {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 12px 8px;
+}
+
+/* ---------- Mobile top bar & tab bar ---------- */
+.topbar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--topbar-height);
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--nav-bg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.topbar .brand {
+  height: auto;
+  padding: 0;
+}
+
+.topbar .wordmark {
+  display: block;
+  font-size: 20px;
+}
+
+.topbarActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--surface-hover);
+}
+
+.tabbar {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: calc(var(--tabbar-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--nav-bg);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.tab {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  height: var(--tabbar-height);
+  border: 0;
+  background: none;
+  color: var(--text);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .sidebar {
+    display: flex;
+  }
+
+  .topbar,
+  .tabbar {
+    display: none;
+  }
+}
+
+@media (min-width: 1264px) {
+  .sidebar {
+    width: var(--sidebar-wide);
+  }
+
+  .wordmark,
+  .navLabel {
+    display: block;
+  }
+
+  .authButtons {
+    display: flex;
+  }
+}

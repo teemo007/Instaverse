@@ -1,0 +1,85 @@
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.skeleton {
+  padding: 16px 0 24px;
+}
+
+.skeletonHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 4px 12px;
+}
+
+.skeletonCircle,
+.skeletonLine,
+.skeletonMedia {
+  background: linear-gradient(
+    90deg,
+    var(--skeleton) 25%,
+    var(--skeleton-shine) 50%,
+    var(--skeleton) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+}
+
+.skeletonLine {
+  height: 10px;
+  border-radius: 6px;
+}
+
+.skeletonMedia {
+  aspect-ratio: 1;
+  border-radius: 4px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 96px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: 2px solid var(--text);
+  border-radius: 50%;
+  font-size: 32px;
+}
+
+.emptyTitle {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 28px;
+}
+
+.emptyText {
+  max-width: 320px;
+  color: var(--text-secondary);
+  line-height: 20px;
+}

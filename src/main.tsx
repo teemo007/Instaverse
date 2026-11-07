@@ -4,6 +4,7 @@ import ReactDOM from "react-dom/client";
 import { Provider } from "react-redux";
 
 import App from "./app/App";
+import ColorSchemeProvider from "./app/ColorSchemeProvider";
 import { store } from "./app/store";
 import { ErrorBoundary } from "./components/layout/ErrorBoundary";
 import "./index.css";
@@ -20,10 +21,12 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <ErrorBoundary>
-      <Provider store={store}>
-        <App />
-      </Provider>
-    </ErrorBoundary>
+    <ColorSchemeProvider>
+      <ErrorBoundary>
+        <Provider store={store}>
+          <App />
+        </Provider>
+      </ErrorBoundary>
+    </ColorSchemeProvider>
   </React.StrictMode>,
 );

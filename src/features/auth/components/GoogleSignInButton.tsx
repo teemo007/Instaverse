@@ -1,4 +1,4 @@
-import { Alert, Button, Input } from "antd";
+import { Button, Input } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -15,6 +15,7 @@ import {
   renderGoogleButton,
 } from "../googleIdentity";
 import type { GoogleLinkFields } from "./AuthForm.types";
+import styles from "./GoogleSignInButton.module.css";
 
 const isAppError = (value: unknown): value is AppError =>
   typeof value === "object" &&
@@ -80,7 +81,7 @@ const GoogleSignInButton = () => {
           type: "standard",
           theme: "outline",
           size: "large",
-          width: 320,
+          width: 268,
         });
       })
       .catch(() => {
@@ -120,22 +121,38 @@ const GoogleSignInButton = () => {
   };
 
   if (setupError) {
-    return <Alert role="alert" type="warning" message={setupError} showIcon />;
+    return (
+      <p className={styles.notice} role="alert">
+        {setupError}
+      </p>
+    );
   }
 
   if (linkRequired) {
     return (
-      <form onSubmit={(event) => void submitLink(event)}>
-        <p>Enter your existing password to link this Google account.</p>
-        {localError ? <Alert role="alert" type="error" message={localError} /> : null}
-        <label htmlFor="google-link-password">Existing account password</label>
+      <form className={styles.link} onSubmit={(event) => void submitLink(event)}>
+        <p className={styles.linkTitle}>Link your Google account</p>
+        <p className={styles.linkText}>
+          Enter your existing password to link this Google account.
+        </p>
+        <label className={styles.label} htmlFor="google-link-password">
+          Existing account password
+        </label>
         <Input.Password
           id="google-link-password"
           autoComplete="current-password"
+          autoFocus
           value={fields.password}
           onChange={(event) => setFields({ password: event.target.value })}
         />
+        {localError ? (
+          <p className={styles.error} role="alert">
+            {localError}
+          </p>
+        ) : null}
         <Button
+          type="primary"
+          block
           htmlType="submit"
           loading={status === "loading"}
           disabled={!fields.password}
