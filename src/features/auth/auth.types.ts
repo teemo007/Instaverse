@@ -6,8 +6,8 @@ export interface AuthUser {
 }
 
 export interface AuthSession {
-  result: AuthUser;
-  token: string;
+  user: AuthUser;
+  csrfToken: string;
 }
 
 export interface SignInValues {
@@ -18,4 +18,9 @@ export interface SignInValues {
 export interface SignUpValues extends SignInValues {
   username: string;
   confirmPassword: string;
+}
+
+export interface GoogleLinkValues {
+  credential: string;
+  password: string;
 }

@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { signIn, signOut } from "../features/auth/authSlice";
+import { sessionExpired, signIn } from "../features/auth/authSlice";
 import type { AuthSession } from "../features/auth/auth.types";
 import { store } from "./store";
 
 const session: AuthSession = {
-  result: {
+  user: {
     _id: "user-1",
     username: "kyle",
     email: "kyle@example.com",
   },
-  token: "header.payload.signature",
+  csrfToken: "csrf-token",
 };
 
 describe("store", () => {
@@ -22,21 +22,21 @@ describe("store", () => {
     ]);
   });
 
-  it("sign-out updates only auth state", () => {
+  it("an authenticated 401 updates only in-memory auth state", () => {
     store.dispatch(
       signIn.fulfilled(session, "request-1", {
         email: "kyle@example.com",
         password: "password-1",
       }),
     );
-    const stateBeforeSignOut = store.getState();
+    const stateBeforeExpiry = store.getState();
 
-    store.dispatch(signOut());
+    store.dispatch(sessionExpired());
 
-    const stateAfterSignOut = store.getState();
-    expect(stateAfterSignOut.auth.user).toBeNull();
-    expect(stateAfterSignOut.auth.token).toBeNull();
-    expect(stateAfterSignOut.stories).toBe(stateBeforeSignOut.stories);
-    expect(stateAfterSignOut.comments).toBe(stateBeforeSignOut.comments);
+    const stateAfterExpiry = store.getState();
+    expect(stateAfterExpiry.auth.user).toBeNull();
+    expect(stateAfterExpiry.auth.csrfToken).toBeNull();
+    expect(stateAfterExpiry.stories).toBe(stateBeforeExpiry.stories);
+    expect(stateAfterExpiry.comments).toBe(stateBeforeExpiry.comments);
   });
 });

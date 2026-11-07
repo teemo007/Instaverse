@@ -3,13 +3,14 @@ import {
   SafetyOutlined,
   UserOutlined,
 } from "@ant-design/icons";
-import { Alert, Button, Card, Form, Input, Layout, Typography } from "antd";
+import { Alert, Button, Card, Divider, Form, Input, Layout, Typography } from "antd";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { signIn, signUp } from "../authSlice";
 import type { SignInValues, SignUpValues } from "../auth.types";
+import GoogleSignInButton from "./GoogleSignInButton";
 import styles from "./AuthForm.styles";
 import type { AuthFormFields, AuthRouteState } from "./AuthForm.types";
 
@@ -165,6 +166,10 @@ const AuthForm = () => {
             </Button>
           </Form.Item>
         </Form>
+        <Divider style={styles.divider}>or continue with</Divider>
+        <div style={styles.googleButton}>
+          <GoogleSignInButton />
+        </div>
       </Card>
     </Layout>
   );

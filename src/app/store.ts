@@ -1,6 +1,10 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import { authReducer } from "../features/auth/authSlice";
+import {
+  registerCsrfTokenGetter,
+  registerUnauthorizedHandler,
+} from "../api/client";
+import { authReducer, sessionExpired } from "../features/auth/authSlice";
 import { commentsReducer } from "../features/comments/commentsSlice";
 import { storiesReducer } from "../features/stories/storiesSlice";
 
@@ -10,6 +14,11 @@ export const store = configureStore({
     stories: storiesReducer,
     comments: commentsReducer,
   },
+});
+
+registerCsrfTokenGetter(() => store.getState().auth.csrfToken);
+registerUnauthorizedHandler(() => {
+  store.dispatch(sessionExpired());
 });
 
 export type AppStore = typeof store;

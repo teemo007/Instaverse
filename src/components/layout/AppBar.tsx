@@ -1,11 +1,8 @@
 import { Avatar, Button, Image, Layout, Typography } from "antd";
-import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import logo from "../../assets/Instaverse.png";
-import { clearStoredAuth } from "../../features/auth/authPersistence";
-import { isTokenExpired } from "../../features/auth/session";
 import { signOut } from "../../features/auth/authSlice";
 import styles from "./AppBar.styles";
 
@@ -15,21 +12,14 @@ const { Title } = Typography;
 const AppBar = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { token, user } = useAppSelector((state) => state.auth);
+  const { status, user } = useAppSelector((state) => state.auth);
 
-  const handleSignOut = (): void => {
-    clearStoredAuth();
-    dispatch(signOut());
-    navigate("/");
-  };
-
-  useEffect(() => {
-    if (token && isTokenExpired(token)) {
-      clearStoredAuth();
-      dispatch(signOut());
+  const handleSignOut = async (): Promise<void> => {
+    const result = await dispatch(signOut());
+    if (signOut.fulfilled.match(result)) {
       navigate("/");
     }
-  }, [dispatch, navigate, token]);
+  };
 
   return (
     <Header style={styles.header}>
@@ -55,7 +45,11 @@ const AppBar = () => {
           <Title style={styles.title} level={4}>
             {user.username}
           </Title>
-          <Button onClick={handleSignOut} htmlType="button">
+          <Button
+            disabled={status === "loading"}
+            onClick={() => void handleSignOut()}
+            htmlType="button"
+          >
             Sign Out
           </Button>
         </div>

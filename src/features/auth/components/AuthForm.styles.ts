@@ -17,6 +17,13 @@ const styles = {
   title: {
     textAlign: "center",
   },
+  divider: {
+    margin: "8px 0 16px",
+  },
+  googleButton: {
+    display: "flex",
+    justifyContent: "center",
+  },
 } satisfies Record<string, CSSProperties>;
 
 export default styles;
