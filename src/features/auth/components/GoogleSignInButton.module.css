@@ -41,7 +41,17 @@
  * the browser paints an opaque white canvas behind any iframe whose color
  * scheme differs from its embedder's, which shows as a white box around the
  * personalized "Sign in as …" button. Matching the scheme keeps it transparent.
+ *
+ * GIS first inserts an HTML placeholder button, then for a frame or two shows
+ * it together with the loaded iframe (~82px) before removing it. Because the
+ * auth card is vertically centred, that made the whole card jump on every
+ * visit. A fixed height (the large button's 44px iframe) with vertical
+ * clipping keeps the layout still; horizontal overflow stays visible because
+ * the iframe is wider than its container.
  */
 .button {
   color-scheme: light;
+  height: 44px;
+  overflow-x: visible;
+  overflow-y: clip;
 }
