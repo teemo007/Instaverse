@@ -13,6 +13,8 @@ export default defineConfig({
     },
   },
   build: {
-    sourcemap: "hidden",
+    // Hidden maps were still uploaded and publicly served, exposing the full
+    // source, and made Rollup print an error per antd "use client" directive.
+    sourcemap: false,
   },
 });
