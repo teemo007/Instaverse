@@ -20,6 +20,11 @@ export interface StoryFormValues {
   imageFileId?: string;
 }
 
-export interface StoryInput extends StoryFormValues {
-  username: string;
+// The API takes the author from the session. On edit, the image fields are
+// omitted when unchanged so legacy Base64 images are never re-sent.
+export interface StoryInput {
+  caption: string;
+  tags?: string;
+  image?: string;
+  imageFileId?: string;
 }
