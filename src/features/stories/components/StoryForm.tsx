@@ -1,31 +1,37 @@
-import { Alert, Button, Card, Form, Image, Input, Typography } from "antd";
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { NumberOutlined, PictureOutlined } from "@ant-design/icons";
+import { Button, Input, Modal, message } from "antd";
+import { useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
 
-import { useAppDispatch, useAppSelector } from "../../../app/hooks";
 import { normalizeApiError } from "../../../api/errors";
+import { useAppDispatch, useAppSelector } from "../../../app/hooks";
+import UserAvatar from "../../../components/ui/UserAvatar";
 import { IMAGE_ACCEPT, uploadStoryImage, validateImageFile } from "../images";
 import { createStory, updateStory } from "../storiesSlice";
-import type { StoryFormValues, StoryInput } from "../story.types";
-import styles from "./StoryForm.styles";
+import type { StoryInput } from "../story.types";
+import styles from "./StoryForm.module.css";
 import type { StoryFormProps } from "./StoryForm.types";
 
-const { Title } = Typography;
+const CAPTION_LIMIT = 2200;
 
-const StoryForm = ({ editId, setEditId }: StoryFormProps) => {
+interface SavedImage {
+  image: string;
+  imageFileId?: string;
+}
+
+const StoryForm = ({ open, editId, onClose }: StoryFormProps) => {
   const dispatch = useAppDispatch();
   const story = useAppSelector((state) =>
-    editId
-      ? state.stories.items.find((item) => item._id === editId) ?? null
-      : null,
+    editId ? state.stories.items.find((item) => item._id === editId) ?? null : null,
   );
   const user = useAppSelector((state) => state.auth.user);
-  const [form] = Form.useForm<StoryFormValues>();
-  const savedImage = Form.useWatch("image", form) as string | undefined;
+  const [caption, setCaption] = useState("");
+  const [tags, setTags] = useState("");
+  const [savedImage, setSavedImage] = useState<SavedImage | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | undefined>();
+  const [dragging, setDragging] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | undefined>();
   const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -39,59 +45,84 @@ const StoryForm = ({ editId, setEditId }: StoryFormProps) => {
   }, [selectedFile]);
 
   useEffect(() => {
+    if (!open) return;
     setSelectedFile(null);
     setFormError(null);
+    setDragging(false);
     if (fileInput.current) fileInput.current.value = "";
-    if (story && user) {
-      form.setFieldsValue({
-        caption: story.caption,
-        tags: story.tags,
-        image: story.image,
-        imageFileId: story.imageFileId,
-      });
-    } else {
-      form.resetFields();
-    }
-  }, [form, story, user]);
+    setCaption(story?.caption ?? "");
+    setTags(story?.tags ?? "");
+    setSavedImage(
+      story ? { image: story.image, imageFileId: story.imageFileId } : null,
+    );
+  }, [open, story]);
 
-  const reset = (): void => {
-    form.resetFields();
-    setSelectedFile(null);
-    setFormError(null);
-    if (fileInput.current) fileInput.current.value = "";
-    setEditId(null);
+  useEffect(() => {
+    if (open && !user) onClose();
+  }, [open, user, onClose]);
+
+  const pickFile = (file: File | undefined): void => {
+    if (!file) return;
+    try {
+      validateImageFile(file);
+      setSelectedFile(file);
+      setFormError(null);
+    } catch (error) {
+      if (fileInput.current) fileInput.current.value = "";
+      setFormError(normalizeApiError(error).message);
+    }
   };
 
-  const onSubmit = async (formValues: StoryFormValues): Promise<void> => {
-    if (!user || submitting) {
+  const onDrop = (event: DragEvent<HTMLDivElement>): void => {
+    event.preventDefault();
+    setDragging(false);
+    if (!submitting) pickFile(event.dataTransfer.files?.[0]);
+  };
+
+  const close = (): void => {
+    if (!submitting) onClose();
+  };
+
+  const onSubmit = async (event: FormEvent): Promise<void> => {
+    event.preventDefault();
+    if (!user || submitting) return;
+
+    if (!selectedFile && !savedImage) {
+      setFormError("Choose an image before sharing.");
+      return;
+    }
+    if (!caption.trim()) {
+      setFormError("Write a caption before sharing.");
       return;
     }
 
     setSubmitting(true);
     setFormError(null);
     try {
-      let image = { image: formValues.image, imageFileId: formValues.imageFileId };
+      let image = savedImage as SavedImage;
       if (selectedFile) {
         image = await uploadStoryImage(selectedFile);
         // Retain successful uploads so retrying a failed save doesn't upload twice.
-        form.setFieldsValue(image);
+        setSavedImage(image);
         setSelectedFile(null);
         if (fileInput.current) fileInput.current.value = "";
       }
       const imageUnchanged = !!editId && image.image === story?.image;
       const storyInput: StoryInput = {
-        caption: formValues.caption,
-        tags: formValues.tags,
-        ...(imageUnchanged ? {} : image),
+        caption: caption.trim(),
+        tags: tags.trim(),
+        ...(imageUnchanged
+          ? {}
+          : { image: image.image, imageFileId: image.imageFileId }),
       };
       if (editId) {
-        await dispatch(
-          updateStory({ storyId: editId, story: storyInput }),
-        ).unwrap();
+        await dispatch(updateStory({ storyId: editId, story: storyInput })).unwrap();
+        void message.success("Post updated.");
       } else {
         await dispatch(createStory(storyInput)).unwrap();
+        void message.success("Your post has been shared.");
       }
-      reset();
+      onClose();
     } catch (error) {
       setFormError(normalizeApiError(error).message);
     } finally {
@@ -99,99 +130,132 @@ const StoryForm = ({ editId, setEditId }: StoryFormProps) => {
     }
   };
 
-  if (!user) {
-    return (
-      <Card style={styles.formCard}>
-        <Title level={4}>
-          <span style={styles.formTitle}>Welcome to Instaverse!</span>
-          <br />
-          Welcome to Instaverse! Please{" "}
-          <Link to="/authForm" state={{ mode: "signIn" }}>
-            login
-          </Link>{" "}
-          or{" "}
-          <Link to="/authForm" state={{ mode: "signUp" }}>
-            register
-          </Link>{" "}
-          for sharing instant moments or ideas.
-        </Title>
-      </Card>
-    );
-  }
+  const shownImage = preview ?? savedImage?.image;
+  const canSubmit = !!shownImage && !!caption.trim() && !submitting;
 
   return (
-    <Card
-      style={styles.formCard}
-      title={
-        <Title level={4} style={styles.formTitle}>
-          {editId ? "Editing" : "Share"} a story
-        </Title>
-      }
+    <Modal
+      open={open && !!user}
+      onCancel={close}
+      footer={null}
+      closable={false}
+      centered
+      width="min(900px, calc(100vw - 32px))"
+      className={styles.modal}
+      maskClosable={!submitting}
+      keyboard={!submitting}
     >
-      <Form<StoryFormValues>
-        form={form}
-        labelCol={{ span: 6 }}
-        wrapperCol={{ span: 16 }}
-        layout="horizontal"
-        size="middle"
-        onFinish={onSubmit}
-        onFinishFailed={({ errorFields }) => setFormError(errorFields[0]?.errors[0] ?? "Check the story fields.")}
-        disabled={submitting}
-      >
-        <Form.Item name="caption" label="Caption" rules={[{ required: true }]}>
-          <Input.TextArea allowClear autoSize={{ minRows: 2, maxRows: 6 }} />
-        </Form.Item>
-        <Form.Item name="tags" label="Tags">
-          <Input.TextArea allowClear autoSize={{ minRows: 2, maxRows: 6 }} />
-        </Form.Item>
-        <Form.Item name="image" hidden rules={[{
-          validator: (_, value: string | undefined) => selectedFile || value
-            ? Promise.resolve()
-            : Promise.reject(new Error("Choose an image before sharing.")),
-        }]}>
-          <Input />
-        </Form.Item>
-        <Form.Item name="imageFileId" hidden>
-          <Input />
-        </Form.Item>
-        <Form.Item label="Image" required extra="JPEG, PNG, WebP, GIF or AVIF. Maximum 5 MB.">
-          <input
-            ref={fileInput}
-            type="file"
-            accept={IMAGE_ACCEPT}
+      <form className={styles.form} onSubmit={(event) => void onSubmit(event)}>
+        <div className={styles.header}>
+          <button
+            type="button"
+            className={`${styles.headerButton} ${styles.cancel}`}
+            onClick={close}
             disabled={submitting}
-            aria-label="Story image"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              try {
-                validateImageFile(file);
-                setSelectedFile(file);
-                setFormError(null);
-              } catch (error) {
-                event.target.value = "";
-                setSelectedFile(null);
-                setFormError(normalizeApiError(error).message);
-              }
+          >
+            Cancel
+          </button>
+          <h2 className={styles.title}>{editId ? "Edit post" : "Create new post"}</h2>
+          <button
+            type="submit"
+            className={`${styles.headerButton} ${styles.submit}`}
+            disabled={!canSubmit}
+          >
+            {submitting ? "Sharing…" : editId ? "Done" : "Share"}
+          </button>
+        </div>
+
+        <div className={styles.content}>
+          <div
+            className={`${styles.media} ${dragging ? styles.mediaDragging : ""}`}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragging(true);
             }}
-          />
-          {preview || savedImage ? <Image src={preview ?? savedImage} width={120} alt="Selected story image" /> : null}
-        </Form.Item>
-        {formError ? <Alert type="error" showIcon message={formError} style={{ marginBottom: 16 }} /> : null}
-        <Form.Item wrapperCol={{ span: 16, offset: 6 }}>
-          <Button type="primary" block htmlType="submit" loading={submitting}>
-            {submitting ? "Uploading / saving…" : "Share"}
-          </Button>
-        </Form.Item>
-        {editId ? (
-          <Form.Item wrapperCol={{ span: 16, offset: 6 }}>
-            <Button type="primary" block danger onClick={reset}>
-              Discard
-            </Button>
-          </Form.Item>
-        ) : null}
-      </Form>
-    </Card>
+            onDragLeave={() => setDragging(false)}
+            onDrop={onDrop}
+          >
+            {shownImage ? (
+              <>
+                <img className={styles.preview} src={shownImage} alt="Selected story image" />
+                <button
+                  type="button"
+                  className={styles.change}
+                  disabled={submitting}
+                  onClick={() => fileInput.current?.click()}
+                >
+                  Change photo
+                </button>
+              </>
+            ) : (
+              <div className={styles.drop}>
+                <PictureOutlined className={styles.dropIcon} />
+                <p className={styles.dropText}>Drag photos here</p>
+                <Button
+                  type="primary"
+                  disabled={submitting}
+                  onClick={() => fileInput.current?.click()}
+                >
+                  Select from computer
+                </Button>
+                <p className={styles.dropHint}>
+                  JPEG, PNG, WebP, GIF or AVIF · up to 5 MB
+                </p>
+              </div>
+            )}
+            <input
+              ref={fileInput}
+              type="file"
+              hidden
+              accept={IMAGE_ACCEPT}
+              disabled={submitting}
+              aria-label="Story image"
+              onChange={(event) => pickFile(event.target.files?.[0])}
+            />
+          </div>
+
+          <div className={styles.details}>
+            {user ? (
+              <div className={styles.author}>
+                <UserAvatar username={user.username} size={28} />
+                {user.username}
+              </div>
+            ) : null}
+            <Input.TextArea
+              className={styles.caption}
+              variant="borderless"
+              aria-label="Caption"
+              placeholder="Write a caption…"
+              autoSize={{ minRows: 5, maxRows: 10 }}
+              maxLength={CAPTION_LIMIT}
+              value={caption}
+              disabled={submitting}
+              onChange={(event) => setCaption(event.target.value)}
+            />
+            <div className={styles.counter}>
+              {caption.length.toLocaleString()}/{CAPTION_LIMIT.toLocaleString()}
+            </div>
+            <label className={styles.field}>
+              <NumberOutlined className={styles.fieldIcon} />
+              <Input
+                variant="borderless"
+                aria-label="Tags"
+                placeholder="Add tags, separated by spaces"
+                value={tags}
+                disabled={submitting}
+                onChange={(event) => setTags(event.target.value)}
+              />
+            </label>
+            {formError ? (
+              <p className={styles.error} role="alert">
+                {formError}
+              </p>
+            ) : null}
+            <div className={styles.spacer} />
+          </div>
+        </div>
+      </form>
+    </Modal>
   );
 };
 

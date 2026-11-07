@@ -1,17 +1,28 @@
-import { Layout } from "antd";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 
+import ComposerProvider from "../../features/stories/composer/ComposerProvider";
 import AppBar from "./AppBar";
-import styles from "./Layout.styles";
+import styles from "./RootLayout.module.css";
 
-const { Footer } = Layout;
+const RootLayout = () => {
+  const { pathname } = useLocation();
 
-const RootLayout = () => (
-  <Layout style={styles.layout}>
-    <AppBar />
-    <Outlet />
-    <Footer style={styles.footer}>2024 Instaverse</Footer>
-  </Layout>
-);
+  if (pathname === "/authForm") {
+    return (
+      <main className={styles.bare}>
+        <Outlet />
+      </main>
+    );
+  }
+
+  return (
+    <ComposerProvider>
+      <AppBar />
+      <main className={styles.main}>
+        <Outlet />
+      </main>
+    </ComposerProvider>
+  );
+};
 
 export default RootLayout;

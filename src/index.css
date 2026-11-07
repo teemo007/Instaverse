@@ -1,24 +1,174 @@
-* {
+:root {
+  color-scheme: light;
+
+  --bg: #f6f6fb;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-muted: #f1f0f8;
+  --surface-hover: #f0eff7;
+  --border: #e1dff0;
+  --border-light: #ecebf5;
+  --text: #12111f;
+  --text-secondary: #6e6b85;
+  --text-tertiary: #a3a1b8;
+  --primary: #7b61ff;
+  --primary-hover: #6847ff;
+  --link: #5b3fe0;
+  --danger: #ff4d6d;
+  --like: #ff3d9a;
+  --brand-pink: #ff7ad9;
+  --brand-violet: #b69cff;
+  --brand-cyan: #7cf7ff;
+  --brand-cyan-text: #0aa5bd;
+  --skeleton: #ecebf5;
+  --skeleton-shine: #f7f6fc;
+  --drop-highlight: #efeaff;
+  --scrollbar: #d4d2e4;
+  --hero-frame: #ffffff;
+  --hero-shadow: rgba(48, 32, 120, 0.18);
+  --glow-primary: none;
+  --card-bg: #ffffff;
+  --card-border: #ecebf5;
+  --card-border-hover: #dcd7f5;
+  --card-shadow: 0 1px 2px rgba(48, 32, 120, 0.04), 0 8px 24px rgba(48, 32, 120, 0.06);
+  --nav-bg: rgba(255, 255, 255, 0.82);
+  --brand-gradient: linear-gradient(
+    135deg,
+    var(--brand-pink) 0%,
+    var(--brand-violet) 50%,
+    var(--brand-cyan) 100%
+  );
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+
+  --sidebar-wide: 244px;
+  --sidebar-narrow: 72px;
+  --topbar-height: 60px;
+  --tabbar-height: 52px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-wordmark: "Unbounded", var(--font-sans);
+
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #0a0a14;
+  --surface: #0a0a14;
+  --surface-elevated: #141425;
+  --surface-muted: #1a1a2e;
+  --surface-hover: #17172a;
+  --border: #2c2b45;
+  --border-light: #1f1e33;
+  --text: #f2f2ff;
+  --text-secondary: #a6a4c4;
+  --text-tertiary: #6f6d8f;
+  --primary: #8c75ff;
+  --primary-hover: #a08dff;
+  --link: #7cf7ff;
+  --like: #ff4fb8;
+  --brand-cyan-text: #7cf7ff;
+  --skeleton: #17172a;
+  --skeleton-shine: #22223a;
+  --drop-highlight: #1d1640;
+  --scrollbar: #33324d;
+  --hero-frame: #1f1e33;
+  --hero-shadow: rgba(0, 0, 0, 0.6);
+  --glow-primary: 0 0 18px rgba(140, 117, 255, 0.45);
+  --card-bg: #15152a;
+  --card-border: rgba(182, 156, 255, 0.16);
+  --card-border-hover: rgba(124, 247, 255, 0.32);
+  --card-shadow: 0 0 0 1px rgba(124, 247, 255, 0.03), 0 14px 36px rgba(0, 0, 0, 0.5);
+  --nav-bg: rgba(14, 14, 28, 0.72);
+}
+
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(1100px 620px at 100% 0%, rgba(123, 97, 255, 0.24), transparent 62%),
+    radial-gradient(900px 560px at 0% 100%, rgba(255, 79, 184, 0.16), transparent 62%),
+    radial-gradient(700px 420px at 55% 55%, rgba(62, 220, 242, 0.07), transparent 70%),
+    var(--bg);
+  background-attachment: fixed;
+}
+
+body {
+  background-image: radial-gradient(900px 500px at 100% 0%, rgba(123, 97, 255, 0.07), transparent 60%);
+  background-attachment: fixed;
+}
+
+:root[data-theme="dark"] .ant-btn-primary:not(:disabled) {
+  box-shadow: var(--glow-primary);
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-/* ::-webkit-scrollbar {
-    display: none;
-} */
+
+html,
+body {
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
+  height: 8px;
 }
-::-webkit-scrollbar-track-piece {
-  background-color: #fff;
-}
+
 ::-webkit-scrollbar-track {
-  background-color: #fff;
+  background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background-color: #d4d8e2;
+  border-radius: 8px;
+  background-color: var(--scrollbar);
 }
-::-webkit-scrollbar-button {
-  background-color: #fff;
-  display: none;
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

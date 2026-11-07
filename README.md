@@ -1,5 +1,6 @@
-# Instaverse
+# Kapsule
 
+A time capsule for your moments. Kapsule (formerly Instaverse) is a
 React + TypeScript + Vite frontend for a social platform with password and
 Google sign-in, cookie-backed server sessions, comments, likes, and direct
 ImageKit uploads. The backend is
@@ -99,8 +100,9 @@ Add static response headers in Render:
 
 If you add a Content Security Policy, test Google GIS and ImageKit before
 enforcement. At minimum it must allow the Google GIS script/frame and the
-configured ImageKit upload/delivery origins; an untested restrictive policy can
-break sign-in or uploads.
+configured ImageKit upload/delivery origins, plus Google Fonts
+(`fonts.googleapis.com` styles and `fonts.gstatic.com` fonts) for the
+wordmark; an untested restrictive policy can break sign-in or uploads.
 
 ## Release check
 

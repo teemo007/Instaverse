@@ -1,20 +1,36 @@
-import {
-  MailOutlined,
-  SafetyOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
-import { Alert, Button, Card, Divider, Form, Input, Layout, Typography } from "antd";
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { HeartFilled, MessageOutlined, SendOutlined } from "@ant-design/icons";
+import { Button, Form, Input } from "antd";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { useAppDispatch, useAppSelector } from "../../../app/hooks";
-import { signIn, signUp } from "../authSlice";
+import KapsuleMark from "../../../components/ui/KapsuleMark";
+import Wordmark from "../../../components/ui/Wordmark";
+import { clearAuthError, signIn, signUp } from "../authSlice";
 import type { SignInValues, SignUpValues } from "../auth.types";
-import GoogleSignInButton from "./GoogleSignInButton";
-import styles from "./AuthForm.styles";
+import styles from "./AuthForm.module.css";
 import type { AuthFormFields, AuthRouteState } from "./AuthForm.types";
+import GoogleSignInButton from "./GoogleSignInButton";
 
-const { Title } = Typography;
+const Hero = () => (
+  <div className={styles.hero} aria-hidden="true">
+    <div className={styles.heroGlow} />
+    <div className={`${styles.heroCard} ${styles.heroCardBack}`} />
+    <div className={`${styles.heroCard} ${styles.heroCardFront}`}>
+      <div className={styles.heroHeader}>
+        <span className={styles.heroDot} />
+        kapsule
+      </div>
+      <div className={styles.heroPhoto} />
+      <div className={styles.heroBar}>
+        <HeartFilled className={styles.heroLike} />
+        <MessageOutlined />
+        <SendOutlined />
+      </div>
+    </div>
+    <KapsuleMark className={styles.heroLogo} size={104} />
+  </div>
+);
 
 const AuthForm = () => {
   const location = useLocation();
@@ -23,7 +39,23 @@ const AuthForm = () => {
   const [form] = Form.useForm<AuthFormFields>();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { error, status } = useAppSelector((state) => state.auth);
+  const { error, status, user } = useAppSelector((state) => state.auth);
+
+  useEffect(() => {
+    setIsLogin(routeState?.mode !== "signUp");
+    form.resetFields();
+  }, [routeState?.mode, form]);
+
+  useEffect(() => {
+    if (user) navigate("/", { replace: true });
+  }, [user, navigate]);
+
+  useEffect(
+    () => () => {
+      dispatch(clearAuthError());
+    },
+    [dispatch],
+  );
 
   const onSubmit = async (values: AuthFormFields): Promise<void> => {
     try {
@@ -57,121 +89,141 @@ const AuthForm = () => {
   const switchMode = (): void => {
     setIsLogin((currentMode) => !currentMode);
     form.resetFields();
+    dispatch(clearAuthError());
   };
 
   return (
-    <Layout style={styles.container}>
-      {error ? (
-        <Alert
-          message={error.message}
-          type="error"
-          showIcon
-          closable
-          style={styles.alert}
-        />
-      ) : null}
+    <div className={styles.page}>
+      <Hero />
 
-      <Card
-        style={styles.card}
-        title={
-          <Title level={4} style={styles.title}>
-            {isLogin ? "Login to" : "Join"} Instaverse
-          </Title>
-        }
-      >
-        <Form<AuthFormFields>
-          name="authform"
-          form={form}
-          size="large"
-          wrapperCol={{ span: 20, offset: 2 }}
-          onFinish={onSubmit}
-        >
+      <div className={styles.column}>
+        <div className={`${styles.box} ${styles.formBox}`}>
+          <Link to="/" className={styles.brand} aria-label="Kapsule home">
+            <KapsuleMark size={56} />
+            <Wordmark className={styles.wordmark} />
+          </Link>
+          <p className={styles.tagline}>A time capsule for your moments.</p>
           {!isLogin ? (
-            <Form.Item
-              name="username"
-              rules={[
-                { required: true, message: "Please enter your username." },
-              ]}
-            >
-              <Input prefix={<UserOutlined />} placeholder="Username" />
-            </Form.Item>
+            <p className={styles.subtitle}>
+              Sign up to seal your everyday moments, and the big ones too.
+            </p>
           ) : null}
 
-          <Form.Item
-            name="email"
-            rules={[
-              {
-                required: true,
-                message: "Please enter valid email address.",
-              },
-            ]}
+          <Form<AuthFormFields>
+            name="authform"
+            form={form}
+            className={styles.form}
+            onFinish={onSubmit}
+            requiredMark={false}
           >
-            <Input
-              type="email"
-              prefix={<MailOutlined />}
-              placeholder="Email Address"
-              allowClear
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="password"
-            rules={[
-              { required: true, message: "Please enter your password." },
-            ]}
-          >
-            <Input.Password
-              prefix={<SafetyOutlined />}
-              placeholder="Password"
-              allowClear
-            />
-          </Form.Item>
-
-          {!isLogin ? (
             <Form.Item
-              name="confirmPassword"
-              dependencies={["password"]}
+              name="email"
               rules={[
-                { required: true, message: "Please re-enter your password." },
-                ({ getFieldValue }) => ({
-                  validator(_, value: string | undefined) {
-                    if (!value || getFieldValue("password") === value) {
-                      return Promise.resolve();
-                    }
-                    return Promise.reject(
-                      new Error("The two passwords do not match."),
-                    );
-                  },
-                }),
+                {
+                  required: true,
+                  type: "email",
+                  message: "Please enter a valid email address.",
+                },
               ]}
             >
-              <Input.Password
-                prefix={<SafetyOutlined />}
-                placeholder="Confirm Password"
+              <Input
+                className={styles.input}
+                type="email"
+                autoComplete="email"
+                aria-label="Email address"
+                placeholder="Email address"
               />
             </Form.Item>
-          ) : null}
 
-          <Form.Item>
+            {!isLogin ? (
+              <Form.Item
+                name="username"
+                rules={[{ required: true, message: "Please enter your username." }]}
+              >
+                <Input
+                  className={styles.input}
+                  autoComplete="username"
+                  aria-label="Username"
+                  placeholder="Username"
+                />
+              </Form.Item>
+            ) : null}
+
+            <Form.Item
+              name="password"
+              rules={[{ required: true, message: "Please enter your password." }]}
+            >
+              <Input.Password
+                className={styles.input}
+                autoComplete={isLogin ? "current-password" : "new-password"}
+                aria-label="Password"
+                placeholder="Password"
+              />
+            </Form.Item>
+
+            {!isLogin ? (
+              <Form.Item
+                name="confirmPassword"
+                dependencies={["password"]}
+                rules={[
+                  { required: true, message: "Please re-enter your password." },
+                  ({ getFieldValue }) => ({
+                    validator(_, value: string | undefined) {
+                      if (!value || getFieldValue("password") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(
+                        new Error("The two passwords do not match."),
+                      );
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password
+                  className={styles.input}
+                  autoComplete="new-password"
+                  aria-label="Confirm password"
+                  placeholder="Confirm password"
+                />
+              </Form.Item>
+            ) : null}
+
             <Button
+              className={styles.submit}
               htmlType="submit"
               type="primary"
+              block
               loading={status === "loading"}
             >
-              {isLogin ? "Sign In" : "Join"}
+              {isLogin ? "Log in" : "Sign up"}
             </Button>
-            <span style={{ margin: "0 10px 0 20px" }}>Or</span>
-            <Button type="link" onClick={switchMode}>
-              {isLogin ? "Register now" : "Have an account?"}
-            </Button>
-          </Form.Item>
-        </Form>
-        <Divider style={styles.divider}>or continue with</Divider>
-        <div style={styles.googleButton}>
-          <GoogleSignInButton />
+          </Form>
+
+          <div className={styles.divider}>OR</div>
+
+          <div className={styles.google}>
+            <GoogleSignInButton />
+          </div>
+
+          {error ? (
+            <p className={styles.error} role="alert">
+              {error.message}
+            </p>
+          ) : null}
         </div>
-      </Card>
-    </Layout>
+
+        <div className={`${styles.box} ${styles.switch}`}>
+          {isLogin ? "Don't have an account? " : "Have an account? "}
+          <button type="button" className={styles.switchButton} onClick={switchMode}>
+            {isLogin ? "Sign up" : "Log in"}
+          </button>
+        </div>
+
+        <p className={styles.guest}>
+          Just looking? <Link to="/">Browse the feed</Link>
+        </p>
+      </div>
+    </div>
   );
 };
 
