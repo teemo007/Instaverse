@@ -78,10 +78,11 @@ const StoryForm = ({ editId, setEditId }: StoryFormProps) => {
         setSelectedFile(null);
         if (fileInput.current) fileInput.current.value = "";
       }
+      const imageUnchanged = !!editId && image.image === story?.image;
       const storyInput: StoryInput = {
-        ...formValues,
-        ...image,
-        username: user.username,
+        caption: formValues.caption,
+        tags: formValues.tags,
+        ...(imageUnchanged ? {} : image),
       };
       if (editId) {
         await dispatch(

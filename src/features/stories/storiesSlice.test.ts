@@ -36,7 +36,6 @@ const secondStory: Story = {
 
 const storyInput: StoryInput = {
   caption: firstStory.caption,
-  username: firstStory.username,
   image: firstStory.image,
   tags: firstStory.tags,
 };
