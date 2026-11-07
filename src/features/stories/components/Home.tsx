@@ -74,7 +74,9 @@ const Home = () => {
               </div>
             </div>
           )}
-          <p className={styles.footer}>© {new Date().getFullYear()} Kapsule</p>
+          <p className={styles.footer}>
+            © {new Date().getFullYear()} Kapsule · Built by Zijie Luo
+          </p>
         </div>
       </aside>
     </div>
