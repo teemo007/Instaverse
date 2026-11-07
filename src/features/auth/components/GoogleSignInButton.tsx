@@ -163,7 +163,13 @@ const GoogleSignInButton = () => {
     );
   }
 
-  return <div aria-label="Sign in with Google" ref={buttonContainer} />;
+  return (
+    <div
+      aria-label="Sign in with Google"
+      className={styles.button}
+      ref={buttonContainer}
+    />
+  );
 };
 
 export default GoogleSignInButton;

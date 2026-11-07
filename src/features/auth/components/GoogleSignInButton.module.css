@@ -35,3 +35,13 @@
   font-size: 12px;
   text-align: center;
 }
+
+/*
+ * Google renders the button in a light iframe. When the page is in dark mode
+ * the browser paints an opaque white canvas behind any iframe whose color
+ * scheme differs from its embedder's, which shows as a white box around the
+ * personalized "Sign in as …" button. Matching the scheme keeps it transparent.
+ */
+.button {
+  color-scheme: light;
+}
