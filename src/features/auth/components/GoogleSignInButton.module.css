@@ -48,10 +48,18 @@
  * visit. A fixed height (the large button's 44px iframe) with vertical
  * clipping keeps the layout still; horizontal overflow stays visible because
  * the iframe is wider than its container.
+ *
+ * Clipping happens at the padding box, so 2px of block padding (cancelled by
+ * a negative margin, keeping the 44px footprint) leaves room for the 2px
+ * focus outline GIS draws outside the button; without it the top edge of the
+ * focus ring was cut off.
  */
 .button {
   color-scheme: light;
+  box-sizing: content-box;
   height: 44px;
+  padding-block: 2px;
+  margin-block: -2px;
   overflow-x: visible;
   overflow-y: clip;
 }
